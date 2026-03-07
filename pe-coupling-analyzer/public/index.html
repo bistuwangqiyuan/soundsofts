@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>S7 — 聚乙烯粘接声力耦合分析系统 V1.0</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#2c3e50;--card:#34495e;--border:#7f8c8d;--text:#ecf0f1;--dim:#bdc3c7;--accent:#3498db;--red:#e74c3c;--green:#2ecc71}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),#2ecc71);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-size:1.25rem;color:var(--accent);margin:2rem 0 1rem;border-left:3px solid var(--accent);padding-left:.75rem}
+.sub{color:var(--dim);margin-bottom:2rem}
+.badge{display:inline-block;background:var(--accent);color:#fff;font-size:.75rem;padding:2px 10px;border-radius:10px;margin-right:6px}
+.pipeline{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;margin:1.5rem 0}
+.pipe-step{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 16px;text-align:center}
+.pipe-step b{display:block;color:var(--accent);margin-bottom:2px}
+.pipe-step small{color:var(--dim);font-size:.8rem}
+.arrow{color:var(--accent);font-size:1.3rem}
+.controls{background:var(--card);border-radius:10px;padding:1.25rem;margin:1rem 0;border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:1rem;align-items:end}
+.field label{font-size:.8rem;color:var(--dim);display:block;margin-bottom:4px}
+.field input{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;width:100px}
+button{background:var(--accent);color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:600}
+button:hover{opacity:.85}
+.chart-wrap{background:var(--card);border-radius:10px;padding:1rem;margin:1rem 0;border:1px solid var(--border)}
+canvas{max-height:250px}
+.result{background:var(--card);border-radius:10px;padding:1.5rem;margin:1rem 0;border:1px solid var(--border);display:none}
+.result .quality{font-size:1.8rem;font-weight:700;text-align:center;margin:.5rem 0}
+.quality.pass{color:var(--green)}.quality.fail{color:var(--red)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:.75rem 0}
+.stat{text-align:center;padding:.5rem}
+.stat .val{font-size:1.4rem;font-weight:700;color:var(--accent)}
+.stat .lbl{font-size:.8rem;color:var(--dim)}
+.note{background:var(--card);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:1rem;margin:1.5rem 0;color:var(--dim);font-size:.9rem}
+#status{color:var(--accent);font-size:.85rem;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">S7</span><span class="badge">软著登记</span>
+  <h1>聚乙烯粘接声力耦合分析系统 V1.0</h1>
+  <p class="sub">独立分析工具 · CLI/GUI双模式 · 数据→预处理→特征→预测→报告</p>
+
+  <h2>分析流水线</h2>
+  <div class="pipeline">
+    <div class="pipe-step"><b>数据导入</b><small>CSV / HDF5</small></div><span class="arrow">→</span>
+    <div class="pipe-step"><b>信号预处理</b><small>滤波 / 去噪</small></div><span class="arrow">→</span>
+    <div class="pipe-step"><b>特征提取</b><small>时域 / 频域</small></div><span class="arrow">→</span>
+    <div class="pipe-step"><b>力预测</b><small>ONNX 推理</small></div><span class="arrow">→</span>
+    <div class="pipe-step"><b>报告生成</b><small>Word 导出</small></div>
+  </div>
+
+  <h2>在线分析演示</h2>
+  <div class="controls">
+    <div class="field"><label>波形数量</label><input id="n_wf" type="number" value="5" min="1" max="20"></div>
+    <div class="field"><label>采样点数</label><input id="n_pts" type="number" value="500" min="100" max="2000"></div>
+    <div class="field"><label>试样编号</label><input id="spec_id" type="text" value="PE-001"></div>
+    <button onclick="analyze()">分析</button>
+  </div>
+  <div id="status"></div>
+
+  <div class="chart-wrap"><canvas id="chart"></canvas></div>
+
+  <div class="result" id="result">
+    <div class="stats">
+      <div class="stat"><div class="val" id="r-mean">-</div><div class="lbl">均值 (N/cm)</div></div>
+      <div class="stat"><div class="val" id="r-min">-</div><div class="lbl">最小值</div></div>
+      <div class="stat"><div class="val" id="r-max">-</div><div class="lbl">最大值</div></div>
+    </div>
+    <div class="quality" id="r-quality"></div>
+    <p id="r-summary" style="text-align:center;color:var(--dim);margin-top:.5rem;font-size:.9rem"></p>
+  </div>
+
+  <div class="note">
+    <b>桌面版说明：</b>完整版使用 PySide6 图形界面，支持 ONNX 模型本地推理、U-Net 缺陷分割和 Word 报告导出。此 Web 演示为简化版。
+  </div>
+</div>
+<script>
+let chart;
+const ctx=document.getElementById('chart').getContext('2d');
+chart=new Chart(ctx,{type:'bar',data:{labels:[],datasets:[{label:'预测粘接力 (N/cm)',data:[],backgroundColor:'rgba(52,152,219,.7)',borderColor:'#3498db',borderWidth:1}]},options:{responsive:true,animation:{duration:300},scales:{y:{beginAtZero:false,grid:{color:'#34495e'},title:{display:true,text:'N/cm',color:'#bdc3c7'}},x:{grid:{color:'#34495e'}}},plugins:{legend:{labels:{color:'#bdc3c7'}}}}});
+
+async function analyze(){
+  const s=document.getElementById('status');s.textContent='分析中…';
+  const nw=+document.getElementById('n_wf').value, np=+document.getElementById('n_pts').value;
+  const waveforms=[];
+  for(let i=0;i<nw;i++){const w=[];for(let j=0;j<np;j++)w.push(Math.sin(2*Math.PI*5*j/np)*0.8+(Math.random()-0.5)*0.3+0.05*i);waveforms.push(w);}
+  try{
+    const r1=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({waveforms})});
+    const d1=await r1.json();
+    const r2=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({specimen_id:document.getElementById('spec_id').value,predictions:d1.predictions})});
+    const d2=await r2.json();
+    chart.data.labels=d1.predictions.map((_,i)=>`点${i+1}`);
+    chart.data.datasets[0].data=d1.predictions;
+    chart.update();
+    const res=document.getElementById('result');res.style.display='block';
+    document.getElementById('r-mean').textContent=d2.mean_force;
+    document.getElementById('r-min').textContent=d2.min_force;
+    document.getElementById('r-max').textContent=d2.max_force;
+    const qe=document.getElementById('r-quality');qe.textContent=d2.quality;qe.className='quality '+(d2.quality==='合格'?'pass':'fail');
+    document.getElementById('r-summary').textContent=d2.summary;
+    s.textContent='分析完成';
+  }catch(e){s.textContent='请求失败: '+e.message}
+}
+</script>
+</body>
+</html>

@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import (
+    audit,
     auth,
     coupling,
     data_cards,
@@ -56,6 +57,7 @@ async def health_check() -> dict[str, str]:
 
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(audit.router, prefix="/api/audit", tags=["Audit"])
 app.include_router(data_visualization.router, prefix="/api/data", tags=["Data Visualization"])
 app.include_router(data_cards.router, prefix="/api/data", tags=["Data Cards"])
 app.include_router(preprocessing.router, prefix="/api/preprocess", tags=["Preprocessing"])

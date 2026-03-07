@@ -8,6 +8,15 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _default_cors_origins() -> List[str]:
+    """Include Vercel deployment URL when running on Vercel."""
+    origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    vercel_url = os.environ.get("VERCEL_URL")
+    if vercel_url:
+        origins.extend([f"https://{vercel_url}", f"https://www.{vercel_url}"])
+    return origins
+
+
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
@@ -40,7 +49,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = Field(default=120, alias="JWT_EXPIRE_MINUTES")
 
     cors_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000"],
+        default_factory=_default_cors_origins,
         alias="CORS_ORIGINS",
     )
 

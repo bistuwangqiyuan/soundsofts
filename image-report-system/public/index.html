@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>S5 — 超声图像检测与报告生成系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#2d3436;--card:#353b48;--border:#636e72;--text:#dfe6e9;--dim:#b2bec3;--accent:#fdcb6e;--red:#e17055;--green:#00b894}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),#e17055);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-size:1.25rem;color:var(--accent);margin:2rem 0 1rem;border-left:3px solid var(--accent);padding-left:.75rem}
+.sub{color:var(--dim);margin-bottom:2rem}
+.badge{display:inline-block;background:var(--accent);color:#2d3436;font-size:.75rem;font-weight:600;padding:2px 10px;border-radius:10px;margin-right:6px}
+.fusion{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:1rem 0;justify-content:center}
+.branch{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:1rem 1.25rem;text-align:center;min-width:160px}
+.branch b{display:block;color:var(--accent);margin-bottom:4px;font-size:1.05rem}
+.branch small{color:var(--dim);font-size:.8rem}
+.arrow{color:var(--accent);font-size:1.5rem}
+.decision{background:linear-gradient(135deg,#fdcb6e,#e17055);color:#2d3436;border-radius:12px;padding:1rem 1.5rem;font-weight:700;font-size:1.1rem}
+.controls{background:var(--card);border-radius:10px;padding:1.25rem;margin:1rem 0;border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:1rem;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.8rem;color:var(--dim)}
+.field input{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;width:130px}
+button{background:var(--accent);color:#2d3436;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:600}
+button:hover{opacity:.85}
+.result{background:var(--card);border-radius:10px;padding:1.5rem;margin:1rem 0;border:1px solid var(--border)}
+.result .quality{font-size:1.8rem;font-weight:700;text-align:center;margin:.75rem 0}
+.quality.pass{color:var(--green)}.quality.fail{color:var(--red)}.quality.review{color:var(--accent)}
+.check{padding:8px 12px;margin:4px 0;border-radius:6px;font-size:.9rem}
+.check.ok{background:rgba(0,184,148,.15);border-left:3px solid var(--green)}
+.check.ng{background:rgba(225,112,85,.15);border-left:3px solid var(--red)}
+#status{color:var(--accent);font-size:.85rem;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">S5</span><span class="badge">AI+NLG</span>
+  <h1>超声图像检测与报告生成系统</h1>
+  <p class="sub">C扫分析 · 多模态融合 · Word报告自动生成</p>
+
+  <h2>三路融合决策架构</h2>
+  <div class="fusion">
+    <div class="branch"><b>视觉分支</b><small>U-Net + ResNet34<br>缺陷分割</small></div>
+    <div class="branch"><b>声力分支</b><small>Random Forest<br>粘接力预测</small></div>
+    <div class="branch"><b>规则引擎</b><small>GB/T 23257<br>工艺规则校核</small></div>
+    <span class="arrow">→</span>
+    <div class="decision">融合决策</div>
+  </div>
+
+  <h2>融合分析演示</h2>
+  <div class="controls">
+    <div class="field"><label>预测粘接力 (N/cm)</label><input id="force" type="number" value="85" step="0.1"></div>
+    <div class="field"><label>缺陷面积比</label><input id="ratio" type="number" value="0.01" step="0.01" min="0" max="1"></div>
+    <div class="field"><label>视觉置信度</label><input id="conf" type="number" value="0.9" step="0.05" min="0" max="1"></div>
+    <button onclick="analyze()">融合分析</button>
+  </div>
+  <div id="status"></div>
+  <div class="result" id="result" style="display:none">
+    <div id="checks"></div>
+    <div class="quality" id="quality"></div>
+    <div id="confidence" style="text-align:center;color:var(--dim);font-size:.9rem"></div>
+  </div>
+</div>
+<script>
+async function analyze(){
+  const s=document.getElementById('status');s.textContent='分析中…';
+  const force=+document.getElementById('force').value;
+  const ratio=+document.getElementById('ratio').value;
+  const conf=+document.getElementById('conf').value;
+  try{
+    const [r1,r2]=await Promise.all([
+      fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({force,defect_area:Math.round(ratio*10000),total_area:10000})}),
+      fetch('/api/fuse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({predicted_force:force,defect_ratio:ratio,visual_confidence:conf})})
+    ]);
+    const d1=await r1.json(),d2=await r2.json();
+    document.getElementById('result').style.display='block';
+    let ch='';
+    (d1.checks||[]).forEach(c=>{ch+=`<div class="check ${c.passed?'ok':'ng'}">${c.passed?'✓':'✗'} ${c.message}</div>`});
+    document.getElementById('checks').innerHTML=ch;
+    const q=d2.quality;
+    const el=document.getElementById('quality');
+    el.textContent=q;
+    el.className='quality '+(q==='合格'?'pass':q==='不合格'?'fail':'review');
+    document.getElementById('confidence').textContent=`融合置信度: ${d2.confidence}`;
+    s.textContent='分析完成';
+  }catch(e){s.textContent='请求失败: '+e.message}
+}
+</script>
+</body>
+</html>

@@ -18,6 +18,25 @@ class Token(BaseModel):
     expires_in: int  # seconds
 
 
+class LoginUserInfo(BaseModel):
+    """User info in login response (frontend compatible)."""
+
+    id: str
+    username: str
+    role: str
+    displayName: str | None = None
+
+
+class LoginResponse(BaseModel):
+    """Login response matching frontend expectations (camelCase)."""
+
+    accessToken: str
+    expiresIn: int
+    user: LoginUserInfo
+
+    model_config = {"populate_by_name": True}
+
+
 class UserCreate(BaseModel):
     """User registration request."""
 
@@ -30,10 +49,9 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     """User response (no password)."""
 
+    model_config = {"from_attributes": True}
+
     id: int
     username: str
     email: str
     role: str
-
-    class Config:
-        from_attributes = True

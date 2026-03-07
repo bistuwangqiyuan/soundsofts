@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status
 from sqlalchemy import select
 
-from api.schemas.auth import LoginRequest, Token, UserCreate, UserResponse
+from api.schemas.auth import LoginRequest, LoginResponse, LoginUserInfo, UserCreate, UserResponse
 from api.schemas.common import APIResponse
 from core.config import get_settings
 from core.database import get_db
@@ -19,12 +19,12 @@ router = APIRouter()
 settings = get_settings()
 
 
-@router.post("/login", response_model=APIResponse[Token])
+@router.post("/login", response_model=APIResponse[LoginResponse])
 async def login(
     form: LoginRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> APIResponse[Token]:
-    """Authenticate user and return JWT token."""
+) -> APIResponse[LoginResponse]:
+    """Authenticate user and return JWT token with user info."""
     result = await db.execute(select(User).where(User.username == form.username))
     user = result.scalar_one_or_none()
     if not user or not verify_password(form.password, user.hashed_password):
@@ -34,10 +34,15 @@ async def login(
         )
     token = create_access_token(subject=user.id)
     return APIResponse(
-        data=Token(
-            access_token=token,
-            token_type="bearer",
-            expires_in=settings.jwt_expire_minutes * 60,
+        data=LoginResponse(
+            accessToken=token,
+            expiresIn=settings.jwt_expire_minutes * 60,
+            user=LoginUserInfo(
+                id=str(user.id),
+                username=user.username,
+                role=user.role,
+                displayName=user.username,
+            ),
         ),
     )
 

@@ -71,4 +71,7 @@ class ResultPanel(QWidget):
 
     def export_report(self, path: str) -> None:
         from core.reporter import generate_report
-        generate_report({}, self._results.get("predictions", []), output_path=path)
+        data = self._results.get("data", {})
+        if not data:
+            data = {"source": "GUI 分析"}
+        generate_report(data, self._results.get("predictions", []), output_path=path)

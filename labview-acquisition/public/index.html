@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>S6 — LabVIEW 上位机采集控制软件</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#1a1a2e;--card:#16213e;--border:#0f3460;--text:#e0e0e0;--dim:#a0a0b0;--accent:#f0a500;--accent2:#e94560}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-size:1.25rem;color:var(--accent);margin:2rem 0 1rem;border-left:3px solid var(--accent);padding-left:.75rem}
+.sub{color:var(--dim);margin-bottom:2rem}
+.badge{display:inline-block;background:var(--accent);color:#1a1a2e;font-size:.75rem;font-weight:600;padding:2px 10px;border-radius:10px;margin-right:6px}
+.notice{background:var(--card);border-left:4px solid var(--accent2);border-radius:0 8px 8px 0;padding:1rem 1.25rem;margin:1.5rem 0;color:var(--accent2);font-size:.95rem}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem}
+th,td{padding:8px 12px;border:1px solid var(--border);text-align:left}
+th{background:var(--card);color:var(--accent)}
+.arch{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:1.5rem 0}
+.arch-block{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:12px 18px;text-align:center;min-width:120px}
+.arch-block b{display:block;color:var(--accent);margin-bottom:4px}
+.arch-block small{color:var(--dim);font-size:.8rem}
+.arrow{color:var(--accent);font-size:1.5rem}
+.vi-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;margin:1rem 0}
+.vi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem}
+.vi b{color:var(--accent);font-size:.9rem}
+.vi p{color:var(--dim);font-size:.8rem;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">S6</span><span class="badge">工控软件</span>
+  <h1>LabVIEW 上位机采集控制软件</h1>
+  <p class="sub">FPGA同步触发 · 超声/位置/力多物理场同步采集 · 实时监控</p>
+
+  <div class="notice">本系统为硬件工控软件，需配合 FPGA、DAQ 卡和传感器在本地安装运行。此页面仅提供技术文档展示。</div>
+
+  <h2>系统架构</h2>
+  <div class="arch">
+    <div class="arch-block"><b>FPGA</b><small>Xilinx Artix-7<br>硬件触发逻辑</small></div><span class="arrow">→</span>
+    <div class="arch-block"><b>DAQ 卡</b><small>NI USB-6363<br>16位 250kS/s</small></div><span class="arrow">→</span>
+    <div class="arch-block"><b>LabVIEW</b><small>主程序面板<br>实时采集与显示</small></div><span class="arrow">→</span>
+    <div class="arch-block"><b>数据存储</b><small>HDF5 / CSV<br>含时间戳与元数据</small></div>
+  </div>
+
+  <h2>关键技术指标</h2>
+  <table>
+    <tr><th>指标</th><th>要求</th><th>实现</th></tr>
+    <tr><td>同步触发精度</td><td>≤ 1 ms</td><td>FPGA 硬件触发</td></tr>
+    <tr><td>空间触发间隔</td><td>1 mm</td><td>增量式光电编码器</td></tr>
+    <tr><td>DAQ 采样精度</td><td>16 位, 250 kS/s</td><td>NI USB-6363</td></tr>
+    <tr><td>拉力采样率</td><td>1000 Hz</td><td>S型拉压力传感器</td></tr>
+    <tr><td>超声采样率</td><td>≥ 40 MHz</td><td>PAUT, 2–10 MHz</td></tr>
+    <tr><td>连续采集稳定性</td><td>≥ 8 小时无故障</td><td>验证通过</td></tr>
+  </table>
+
+  <h2>SubVI 模块清单</h2>
+  <div class="vi-list">
+    <div class="vi"><b>FPGA_Trigger.vi</b><p>FPGA 触发控制（位移编码器每 1mm 触发）</p></div>
+    <div class="vi"><b>DAQ_Config.vi</b><p>DAQ 卡配置与初始化</p></div>
+    <div class="vi"><b>Ultrasonic_Interface.vi</b><p>超声主机通信接口</p></div>
+    <div class="vi"><b>Force_Acquisition.vi</b><p>拉力传感器数据采集</p></div>
+    <div class="vi"><b>Position_Tracking.vi</b><p>位置编码器读取</p></div>
+    <div class="vi"><b>RealTime_Display.vi</b><p>实时波形/力值/位置显示</p></div>
+    <div class="vi"><b>Parameter_Panel.vi</b><p>参数设定面板</p></div>
+    <div class="vi"><b>Data_Storage.vi</b><p>HDF5/CSV 数据存储</p></div>
+    <div class="vi"><b>Alarm_Handler.vi</b><p>异常报警处理</p></div>
+    <div class="vi"><b>Sync_Monitor.vi</b><p>同步状态实时监控</p></div>
+    <div class="vi"><b>Calibration.vi</b><p>传感器校准</p></div>
+  </div>
+
+  <h2>Python 接口</h2>
+  <table>
+    <tr><th>模块</th><th>功能</th></tr>
+    <tr><td>tcp_stream.py</td><td>TCP 流读取，实时获取 LabVIEW 推送的采集数据</td></tr>
+    <tr><td>data_reader.py</td><td>HDF5/CSV 离线数据读取与元数据解析</td></tr>
+    <tr><td>calibration_manager.py</td><td>校准数据管理与传感器系数查询</td></tr>
+  </table>
+</div>
+</body>
+</html>

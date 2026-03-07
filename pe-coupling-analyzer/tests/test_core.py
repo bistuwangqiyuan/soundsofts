@@ -4,12 +4,67 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 
+from core.data_loader import load_data
 from core.preprocessor import preprocess_signals
 from core.feature_engine import extract_features
 from core.predictor import predict_force
 from core.reporter import generate_report
+
+
+class TestDataLoader:
+    def test_load_csv(self):
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+            df = pd.DataFrame({"f1": [1.0, 2.0], "f2": [3.0, 4.0], "force": [80.0, 90.0]})
+            df.to_csv(f.name, index=False)
+            path = f.name
+        try:
+            data = load_data(path)
+            assert "features" in data
+            assert "force" in data
+            assert data["features"].shape[0] == 2
+            assert data["features"].shape[1] == 2
+            assert list(data["force"]) == [80.0, 90.0]
+        finally:
+            Path(path).unlink(missing_ok=True)
+
+    def test_load_csv_no_force(self):
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+            df = pd.DataFrame({"f1": [1.0, 2.0], "f2": [3.0, 4.0]})
+            df.to_csv(f.name, index=False)
+            path = f.name
+        try:
+            data = load_data(path)
+            assert "features" in data
+            assert len(data["force"]) == 0
+        finally:
+            Path(path).unlink(missing_ok=True)
+
+    def test_unsupported_format_raises(self):
+        with pytest.raises(ValueError, match="Unsupported"):
+            load_data("dummy.txt")
+
+    def test_load_hdf5(self):
+        import h5py
+        with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as f:
+            path = f.name
+        try:
+            with h5py.File(path, "w") as hf:
+                g = hf.create_group("spec1")
+                g1 = g.create_group("point1")
+                g1["waveform"] = np.random.randn(1000).astype(np.float32)
+                g1["force"] = 85.0
+                g2 = g.create_group("point2")
+                g2["waveform"] = np.random.randn(1000).astype(np.float32)
+                g2["force"] = 90.0
+            data = load_data(path)
+            assert "waveforms" in data
+            assert len(data["waveforms"]) == 2
+            assert len(data["force"]) == 2
+        finally:
+            Path(path).unlink(missing_ok=True)
 
 
 class TestPreprocessor:
@@ -45,6 +100,6 @@ class TestReporter:
     def test_generates_docx(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output = Path(tmpdir) / "test.docx"
-            generate_report({"source": "test.csv"}, [80.0, 85.0, 90.0], output)
+            generate_report({"source": "test.csv"}, [80.0, 85.0, 90.0], output_path=output)
             assert output.exists()
             assert output.stat().st_size > 0

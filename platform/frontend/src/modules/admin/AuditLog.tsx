@@ -64,11 +64,11 @@ function AuditLog() {
     auditApi
       .exportLogs(filter)
       .then((res) => {
-        const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `audit_log_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        a.download = `audit_log_${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
         message.success('导出成功');

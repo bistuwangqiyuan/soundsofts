@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QComboBox, QGroupBox, QFormLayout, QSpinBox, QDoubleSpinBox,
-    QProgressBar, QTextEdit,
+    QProgressBar, QTextEdit, QMessageBox,
 )
 
 import numpy as np
+
+from core.preprocessor import preprocess_signals
+from core.feature_engine import extract_features
+from core.predictor import predict_force
 
 
 class AnalysisPanel(QWidget):
@@ -84,22 +89,58 @@ class AnalysisPanel(QWidget):
         self.progress.setValue(0)
         self.log_text.clear()
 
+        if not data or (not data.get("waveforms") and not data.get("features")):
+            self.log_text.append("请先在「数据导入」标签页加载数据文件。")
+            QMessageBox.warning(self, "提示", "请先加载 CSV 或 HDF5 数据文件。")
+            return
+
         self.log_text.append("开始分析...")
-        self.progress.setValue(20)
+        self.progress.setValue(10)
 
-        self.log_text.append(f"使用模型: {self.model_combo.currentText()}")
-        self.log_text.append(f"带通滤波: {self.lowcut_spin.value()}-{self.highcut_spin.value()} MHz")
-        self.progress.setValue(50)
+        try:
+            self.log_text.append("预处理信号...")
+            processed = preprocess_signals(data)
+            self.progress.setValue(30)
 
-        # Placeholder for actual analysis
-        self._results = {
-            "model": self.model_combo.currentText(),
-            "predictions": np.random.randn(10).tolist(),
-            "metrics": {"MAE": 0.93, "RMSE": 2.17, "R2": 0.9956, "MAPE": 1.30},
-        }
+            self.log_text.append("提取特征...")
+            features = extract_features(processed)
+            self.progress.setValue(50)
 
-        self.progress.setValue(100)
-        self.log_text.append("分析完成。")
+            if features.size == 0:
+                self.log_text.append("错误：未能提取到有效特征。")
+                return
+
+            model_path = Path(__file__).resolve().parent.parent.parent / "resources" / "models" / "random_forest.onnx"
+            self.log_text.append(f"预测粘接力 (模型: {self.model_combo.currentText()})...")
+            predictions = predict_force(features, model_path=str(model_path))
+            self.progress.setValue(80)
+
+            # Compute metrics if ground truth available
+            forces = data.get("force", np.array([]))
+            metrics: dict[str, float] = {}
+            if len(forces) > 0 and len(forces) == len(predictions):
+                preds = np.asarray(predictions)
+                acts = np.asarray(forces)
+                metrics["MAE"] = float(np.mean(np.abs(preds - acts)))
+                metrics["RMSE"] = float(np.sqrt(np.mean((preds - acts) ** 2)))
+                ss_res = np.sum((acts - preds) ** 2)
+                ss_tot = np.sum((acts - np.mean(acts)) ** 2)
+                metrics["R2"] = float(1 - ss_res / ss_tot) if ss_tot > 1e-12 else 0.0
+                mape = np.mean(np.abs((acts - preds) / (acts + 1e-12))) * 100
+                metrics["MAPE"] = float(mape)
+
+            self._results = {
+                "model": self.model_combo.currentText(),
+                "predictions": predictions.tolist() if hasattr(predictions, "tolist") else list(predictions),
+                "metrics": metrics or {"MAE": 0, "RMSE": 0, "R2": 0, "MAPE": 0},
+                "data": data,
+            }
+
+            self.progress.setValue(100)
+            self.log_text.append(f"分析完成。共 {len(predictions)} 个预测点。")
+        except Exception as e:
+            self.log_text.append(f"分析失败: {e}")
+            QMessageBox.critical(self, "错误", str(e))
 
     def get_results(self) -> dict[str, Any]:
         return self._results

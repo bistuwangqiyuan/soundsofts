@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>S3 — U-Net 超声C扫缺陷语义分割系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0b0c10;--card:#1f2833;--border:#45a29e;--text:#c5c6c7;--accent:#66fcf1;--accent2:#45a29e}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-size:1.25rem;color:var(--accent);margin:2rem 0 1rem;border-left:3px solid var(--accent);padding-left:.75rem}
+.sub{color:var(--accent2);margin-bottom:2rem}
+.badge{display:inline-block;background:var(--accent2);color:#fff;font-size:.75rem;padding:2px 10px;border-radius:10px;margin-right:6px}
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin:1rem 0}
+.metric{background:var(--card);border-radius:10px;padding:1rem;text-align:center;border:1px solid var(--border)}
+.metric .val{font-size:2rem;font-weight:700;color:var(--accent)}
+.metric .lbl{font-size:.8rem;color:var(--accent2)}
+.arch{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:1rem 0}
+.arch-block{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center;font-size:.85rem}
+.arch-block b{color:var(--accent);display:block;margin-bottom:2px}
+.arch-arrow{color:var(--accent);font-size:1.4rem}
+.controls{background:var(--card);border-radius:10px;padding:1.25rem;margin:1rem 0;border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:1rem;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.8rem;color:var(--accent2)}
+.field input{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;width:100px}
+button{background:var(--accent);color:#0b0c10;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:600}
+button:hover{opacity:.85}
+.canvas-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.canvas-wrap{background:var(--card);border-radius:10px;padding:.75rem;border:1px solid var(--border);text-align:center}
+.canvas-wrap p{font-size:.85rem;color:var(--accent2);margin-bottom:6px}
+canvas{image-rendering:pixelated;width:100%;max-height:300px}
+table{width:100%;border-collapse:collapse;margin:.75rem 0;font-size:.85rem}
+th,td{padding:6px 10px;border:1px solid var(--border);text-align:center}
+th{background:var(--card);color:var(--accent)}
+#status{color:var(--accent);font-size:.85rem;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">S3</span><span class="badge">Deep Learning</span>
+  <h1>U-Net 超声C扫缺陷语义分割系统</h1>
+  <p class="sub">U-Net + ResNet34编码器 · 像素级缺陷识别 · TorchServe部署</p>
+
+  <h2>模型性能</h2>
+  <div class="metrics-row">
+    <div class="metric"><div class="val">0.92</div><div class="lbl">IoU</div></div>
+    <div class="metric"><div class="val">0.96</div><div class="lbl">Dice</div></div>
+    <div class="metric"><div class="val">0.95</div><div class="lbl">Precision</div></div>
+    <div class="metric"><div class="val">0.93</div><div class="lbl">Recall</div></div>
+  </div>
+
+  <h2>模型架构</h2>
+  <div class="arch">
+    <div class="arch-block"><b>输入</b>384×768 RGB</div><span class="arch-arrow">→</span>
+    <div class="arch-block"><b>ResNet34</b>编码器 (ImageNet)</div><span class="arch-arrow">→</span>
+    <div class="arch-block"><b>U-Net</b>解码器 + 跳跃连接</div><span class="arch-arrow">→</span>
+    <div class="arch-block"><b>Sigmoid</b>二值掩码</div><span class="arch-arrow">→</span>
+    <div class="arch-block"><b>后处理</b>连通域分析</div>
+  </div>
+
+  <h2>分割模拟演示</h2>
+  <div class="controls">
+    <div class="field"><label>宽度</label><input id="w" type="number" value="80" min="32" max="200"></div>
+    <div class="field"><label>高度</label><input id="h" type="number" value="60" min="32" max="200"></div>
+    <div class="field"><label>缺陷数</label><input id="dc" type="number" value="3" min="0" max="15"></div>
+    <button onclick="simulate()">生成模拟C扫</button>
+  </div>
+  <div id="status"></div>
+  <div class="canvas-row">
+    <div class="canvas-wrap"><p>模拟C扫图像</p><canvas id="c-img"></canvas></div>
+    <div class="canvas-wrap"><p>分割掩码</p><canvas id="c-mask"></canvas></div>
+  </div>
+  <div id="defect-table"></div>
+</div>
+<script>
+function drawMatrix(canvasId,data,colorFn){
+  const c=document.getElementById(canvasId),ctx=c.getContext('2d');
+  const h=data.length,w=data[0].length;c.width=w;c.height=h;
+  const img=ctx.createImageData(w,h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;const[r,g,b]=colorFn(data[y][x]);img.data[i]=r;img.data[i+1]=g;img.data[i+2]=b;img.data[i+3]=255;}
+  ctx.putImageData(img,0,0);
+}
+async function simulate(){
+  const s=document.getElementById('status');s.textContent='生成中…';
+  try{
+    const r=await fetch('/api/simulate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({width:+document.getElementById('w').value,height:+document.getElementById('h').value,defect_count:+document.getElementById('dc').value})});
+    const d=await r.json();
+    drawMatrix('c-img',d.image,v=>[v,v,v]);
+    drawMatrix('c-mask',d.pred_mask,v=>v?[102,252,241]:[31,40,51]);
+    let html=`<p style="color:var(--accent);margin:.5rem 0">IoU: ${d.iou} | Dice: ${d.dice}</p>`;
+    if(d.defects.length){
+      html+='<table><tr><th>ID</th><th>中心X</th><th>中心Y</th><th>面积</th></tr>';
+      d.defects.forEach(df=>{html+=`<tr><td>${df.id}</td><td>${df.cx}</td><td>${df.cy}</td><td>${df.area}</td></tr>`});
+      html+='</table>';
+    }
+    document.getElementById('defect-table').innerHTML=html;
+    s.textContent=`检测到 ${d.defect_count} 个缺陷`;
+  }catch(e){s.textContent='请求失败: '+e.message}
+}
+</script>
+</body>
+</html>

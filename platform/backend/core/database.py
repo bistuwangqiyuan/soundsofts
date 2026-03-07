@@ -64,9 +64,13 @@ class Base(DeclarativeBase):
 
 async def init_db() -> None:
     """Initialize database (create tables if not exist)."""
-    async with engine.begin() as conn:
-        from models import audit_log, user  # noqa: F401
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            from models import audit_log, user  # noqa: F401
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Database init failed (may be missing DATABASE_URL): %s", e)
 
 
 async def close_db() -> None:
