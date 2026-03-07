@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>S6 — LabVIEW 上位机采集控制软件</title>
+<title>S6 — pyhton 的b/s架构 上位机采集控制软件</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#1a1a2e;--card:#16213e;--border:#0f3460;--text:#e0e0e0;--dim:#a0a0b0;--accent:#f0a500;--accent2:#e94560}
@@ -31,7 +31,7 @@ th{background:var(--card);color:var(--accent)}
 <body>
 <div class="container">
   <span class="badge">S6</span><span class="badge">工控软件</span>
-  <h1>LabVIEW 上位机采集控制软件</h1>
+  <h1>pyhton 的b/s架构 上位机采集控制软件</h1>
   <p class="sub">FPGA同步触发 · 超声/位置/力多物理场同步采集 · 实时监控</p>
 
   <div class="notice">本系统为硬件工控软件，需配合 FPGA、DAQ 卡和传感器在本地安装运行。此页面仅提供技术文档展示。</div>
@@ -40,7 +40,7 @@ th{background:var(--card);color:var(--accent)}
   <div class="arch">
     <div class="arch-block"><b>FPGA</b><small>Xilinx Artix-7<br>硬件触发逻辑</small></div><span class="arrow">→</span>
     <div class="arch-block"><b>DAQ 卡</b><small>NI USB-6363<br>16位 250kS/s</small></div><span class="arrow">→</span>
-    <div class="arch-block"><b>LabVIEW</b><small>主程序面板<br>实时采集与显示</small></div><span class="arrow">→</span>
+    <div class="arch-block"><b>pyhton 的b/s架构</b><small>主程序面板<br>实时采集与显示</small></div><span class="arrow">→</span>
     <div class="arch-block"><b>数据存储</b><small>HDF5 / CSV<br>含时间戳与元数据</small></div>
   </div>
 
@@ -73,7 +73,7 @@ th{background:var(--card);color:var(--accent)}
   <h2>Python 接口</h2>
   <table>
     <tr><th>模块</th><th>功能</th></tr>
-    <tr><td>tcp_stream.py</td><td>TCP 流读取，实时获取 LabVIEW 推送的采集数据</td></tr>
+    <tr><td>tcp_stream.py</td><td>TCP 流读取，实时获取 pyhton 的b/s架构 推送的采集数据</td></tr>
     <tr><td>data_reader.py</td><td>HDF5/CSV 离线数据读取与元数据解析</td></tr>
     <tr><td>calibration_manager.py</td><td>校准数据管理与传感器系数查询</td></tr>
   </table>

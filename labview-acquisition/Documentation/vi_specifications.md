@@ -1,4 +1,4 @@
-# LabVIEW VI Specifications
+# pyhton 的b/s架构 VI Specifications
 
 ## Main.vi
 - **Purpose**: Main application entry point with state machine architecture

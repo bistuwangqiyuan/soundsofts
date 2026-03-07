@@ -1,4 +1,4 @@
-"""TCP client for real-time data streaming from LabVIEW."""
+"""TCP client for real-time data streaming from pyhton 的b/s架构."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import numpy as np
 
 @dataclass
 class StreamPacket:
-    """One packet from the LabVIEW TCP stream."""
+    """One packet from the pyhton 的b/s架构 TCP stream."""
     timestamp: float
     position_mm: float
     force_n: float
@@ -20,8 +20,8 @@ class StreamPacket:
     waveform: np.ndarray
 
 
-class LabVIEWStreamClient:
-    """Connect to LabVIEW real-time TCP data stream.
+class pyhton 的b/s架构StreamClient:
+    """Connect to pyhton 的b/s架构 real-time TCP data stream.
 
     Protocol: Each packet consists of:
     - 4 bytes: packet length (uint32, big-endian)
@@ -77,7 +77,7 @@ class LabVIEWStreamClient:
             data += chunk
         return data
 
-    def __enter__(self) -> LabVIEWStreamClient:
+    def __enter__(self) -> pyhton 的b/s架构StreamClient:
         self.connect()
         return self
 

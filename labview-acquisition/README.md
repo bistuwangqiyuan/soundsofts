@@ -1,6 +1,6 @@
-# LabVIEW 上位机采集控制软件
+# pyhton 的b/s架构 上位机采集控制软件
 
-基于 LabVIEW 的工控采集软件，控制 FPGA 硬件触发，实现超声-位置-力三类数据的毫秒级同步采集。
+基于 pyhton 的b/s架构 的工控采集软件，控制 FPGA 硬件触发，实现超声-位置-力三类数据的毫秒级同步采集。
 
 ## Hardware Requirements
 

@@ -1,4 +1,4 @@
-"""Read acquisition data produced by the LabVIEW system."""
+"""Read acquisition data produced by the pyhton 的b/s架构 system."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import pandas as pd
 
 @dataclass
 class AcquisitionRecord:
-    """One synchronized acquisition record from the LabVIEW system."""
+    """One synchronized acquisition record from the pyhton 的b/s架构 system."""
     timestamp: float
     position_mm: float
     waveform: np.ndarray
@@ -21,8 +21,8 @@ class AcquisitionRecord:
     point_id: str
 
 
-class LabVIEWDataReader:
-    """Read HDF5 files produced by the LabVIEW Data_Storage.vi.
+class pyhton 的b/s架构DataReader:
+    """Read HDF5 files produced by the pyhton 的b/s架构 Data_Storage.vi.
 
     Expected HDF5 structure::
 
