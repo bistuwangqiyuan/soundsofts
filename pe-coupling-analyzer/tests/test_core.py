@@ -103,3 +103,24 @@ class TestReporter:
             generate_report({"source": "test.csv"}, [80.0, 85.0, 90.0], output_path=output)
             assert output.exists()
             assert output.stat().st_size > 0
+
+
+class TestCLIPipeline:
+    """Integration test for full CLI pipeline."""
+
+    def test_full_pipeline_csv(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            csv_path = Path(tmpdir) / "data.csv"
+            df = pd.DataFrame({"f1": [1.0, 2.0], "f2": [3.0, 4.0], "force": [80.0, 90.0]})
+            df.to_csv(csv_path, index=False)
+            out_path = Path(tmpdir) / "report.docx"
+
+            # Simulate CLI run
+            data = load_data(csv_path)
+            processed = preprocess_signals(data)
+            features = extract_features(processed)
+            predictions = predict_force(features, model_path="nonexistent.onnx")
+            generate_report(data, predictions, output_path=out_path)
+
+            assert out_path.exists()
+            assert len(predictions) == 2

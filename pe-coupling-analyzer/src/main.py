@@ -32,8 +32,13 @@ def run_cli(args: argparse.Namespace) -> None:
         generate_report(data, predictions, output_path=args.output)
 
     print("Analysis complete.")
-    for i, (pred, actual) in enumerate(zip(predictions[:5], data.get("force", [])[:5])):
-        print(f"  Point {i+1}: predicted={pred:.2f} N, actual={actual:.2f} N")
+    forces = data.get("force", [])
+    for i, pred in enumerate(predictions[:5]):
+        actual = forces[i] if i < len(forces) else None
+        if actual is not None:
+            print(f"  Point {i+1}: predicted={pred:.2f} N, actual={actual:.2f} N")
+        else:
+            print(f"  Point {i+1}: predicted={pred:.2f} N")
 
 
 def run_gui() -> None:

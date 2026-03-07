@@ -78,6 +78,8 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.analysis_panel, "分析控制")
         self.tabs.addTab(self.result_panel, "结果展示")
 
+        self.analysis_panel.set_data_provider(self.data_panel.get_data)
+
         self.setCentralWidget(self.tabs)
 
     def _setup_statusbar(self) -> None:

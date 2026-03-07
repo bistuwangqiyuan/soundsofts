@@ -27,7 +27,10 @@ class MetadataManager:
             self._load()
 
     def _load(self) -> None:
-        raw = json.loads(self.db_path.read_text(encoding="utf-8"))
+        text = self.db_path.read_text(encoding="utf-8").strip()
+        if not text:
+            return
+        raw = json.loads(text)
         for sid, info in raw.items():
             self._data[sid] = SpecimenMeta(**info)
 

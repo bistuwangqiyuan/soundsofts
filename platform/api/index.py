@@ -3,9 +3,13 @@
 import sys
 from pathlib import Path
 
-# Add platform root to path so backend package is importable
+# Add backend dir to path so main.py's "from api.routes" resolves to backend.api
 root = Path(__file__).resolve().parent.parent
-if str(root) not in sys.path:
-    sys.path.insert(0, str(root))
+backend_dir = root / "backend"
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
 
-from backend.main import app
+from main import app
+
+if __name__ == "__main__":
+    print("App loaded:", app.title)

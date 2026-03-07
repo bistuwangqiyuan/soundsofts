@@ -9,6 +9,24 @@ pip install -r requirements.txt
 python -m pytest tests/
 ```
 
+## 运行 GUI
+
+```bash
+python run_gui.py
+```
+
+启动后自动打开浏览器，显示信号预处理与特征提取界面。
+
+## 打包为可执行文件
+
+双击运行，无需安装 Python：
+
+```bash
+build_exe.bat
+```
+
+生成的可执行文件位于 `dist/信号处理流水线.exe`，双击即可启动 GUI。
+
 ## Architecture
 
 ```

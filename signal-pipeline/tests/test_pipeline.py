@@ -1,6 +1,7 @@
 """Integration tests for the Pipeline orchestrator."""
 
 import numpy as np
+import pytest
 
 from src.pipeline import Pipeline
 from src.preprocessing import DCRemoval, BandpassFilter, Normalization
@@ -30,6 +31,3 @@ def test_disabled_step():
     result = pipe.run(sig)
     # DC should NOT have been removed; normalization should still work
     assert np.max(np.abs(result)) == pytest.approx(1.0)
-
-
-import pytest

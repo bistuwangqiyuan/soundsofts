@@ -70,7 +70,8 @@ class AnalysisPanel(QWidget):
         # Run button and progress
         run_layout = QHBoxLayout()
         self.run_btn = QPushButton("开始分析")
-        self.run_btn.clicked.connect(lambda: self.run_analysis({}))
+        self._data_provider = lambda: {}
+        self.run_btn.clicked.connect(self._on_run_clicked)
         run_layout.addWidget(self.run_btn)
         layout.addLayout(run_layout)
 
@@ -84,6 +85,13 @@ class AnalysisPanel(QWidget):
         layout.addWidget(self.log_text)
 
         layout.addStretch()
+
+    def set_data_provider(self, provider) -> None:
+        """Set callback to get data from DataPanel."""
+        self._data_provider = provider
+
+    def _on_run_clicked(self) -> None:
+        self.run_analysis(self._data_provider())
 
     def run_analysis(self, data: dict[str, Any]) -> None:
         self.progress.setValue(0)
