@@ -1,0 +1,7 @@
+data_path: "data/processed/features.csv"
+target_column: "force"
+feature_columns: ["ultra", "X", "y", "db", "number_bord"]
+train_ratio: 0.70
+val_ratio: 0.15
+test_ratio: 0.15
+random_state: 42

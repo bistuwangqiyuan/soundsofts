@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ml-engine"
+version = "1.0.0"
+description = "Acoustic-force coupling regression model training and inference engine"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"

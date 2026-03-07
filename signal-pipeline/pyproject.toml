@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "signal-pipeline"
+version = "1.0.0"
+description = "Ultrasonic signal preprocessing and feature extraction pipeline for PE bonding inspection"
+requires-python = ">=3.11"
+license = {text = "Proprietary"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true

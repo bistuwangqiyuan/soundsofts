@@ -1,0 +1,8 @@
+FROM pytorch/torchserve:0.9.0-cpu
+
+COPY torchserve/config.properties /app/config.properties
+COPY torchserve/model-store /app/model-store
+
+EXPOSE 8080 8081
+
+CMD ["torchserve", "--start", "--model-store", "/app/model-store", "--ts-config", "/app/config.properties", "--foreground"]

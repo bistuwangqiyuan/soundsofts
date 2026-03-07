@@ -1,0 +1,22 @@
+model:
+  default: "random_forest"
+  onnx_dir: "/app/models/onnx"
+  torchserve_url: "http://torchserve:8080"
+
+preprocess:
+  filter_band: [2000000, 8000000]
+  wavelet: "db8"
+  wavelet_level: 5
+
+inference:
+  batch_size: 32
+  confidence_threshold: 0.5
+  timeout_sec: 10
+
+report:
+  template: "/app/templates/report_template.docx"
+  output_dir: "/app/reports"
+
+audit:
+  retention_days: 365
+  log_sensitive_ops: true
