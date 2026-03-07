@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+
+# LabVIEW 编译/临时文件
+*.lvlps
+*.aliases
+*.lvclass
+~$*
+*.tmp
+
+# FPGA 编译缓存
+FPGA/Bitfiles/
+FPGA/*.lvbitx
+
+# 采集数据
+Data/
+*.h5
+*.hdf5
+*.csv
+!Config/*.csv

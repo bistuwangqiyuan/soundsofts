@@ -35,8 +35,9 @@ app = FastAPI(
     description="聚乙烯补口粘接检测 - 声力耦合分析、缺陷检测与报告生成",
     version="2.0.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
 )
 
 app.add_middleware(
@@ -47,19 +48,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health check
-@app.get("/health", tags=["Health"])
+
+@app.get("/api/health", tags=["Health"])
 async def health_check() -> dict[str, str]:
     """Health check endpoint for load balancers and monitoring."""
     return {"status": "healthy", "version": "2.0.0"}
 
 
-# Include routers
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-app.include_router(data_visualization.router, prefix="/data", tags=["Data Visualization"])
-app.include_router(data_cards.router, prefix="/data", tags=["Data Cards"])
-app.include_router(preprocessing.router, prefix="/preprocess", tags=["Preprocessing"])
-app.include_router(training.router, prefix="/training", tags=["Training"])
-app.include_router(inference.router, prefix="/inference", tags=["Inference"])
-app.include_router(defect_analysis.router, prefix="/defects", tags=["Defect Analysis"])
-app.include_router(coupling.router, prefix="/coupling", tags=["Coupling"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(data_visualization.router, prefix="/api/data", tags=["Data Visualization"])
+app.include_router(data_cards.router, prefix="/api/data", tags=["Data Cards"])
+app.include_router(preprocessing.router, prefix="/api/preprocess", tags=["Preprocessing"])
+app.include_router(training.router, prefix="/api/training", tags=["Training"])
+app.include_router(inference.router, prefix="/api/inference", tags=["Inference"])
+app.include_router(defect_analysis.router, prefix="/api/defects", tags=["Defect Analysis"])
+app.include_router(coupling.router, prefix="/api/coupling", tags=["Coupling"])

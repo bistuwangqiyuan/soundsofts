@@ -36,12 +36,12 @@ class TestDCRemoval:
 class TestBandpassFilter:
     def test_output_length(self, noisy_signal):
         filt = BandpassFilter(low=2e6, high=8e6, fs=40e6)
-        result = filt.process(noisy_signal, sampling_rate=40e6)
+        result = filt.process(noisy_signal, {"sampling_rate": 40e6})
         assert len(result) == len(noisy_signal)
 
     def test_reduces_noise(self, noisy_signal):
         filt = BandpassFilter(low=2e6, high=8e6, fs=40e6)
-        result = filt.process(noisy_signal, sampling_rate=40e6)
+        result = filt.process(noisy_signal, {"sampling_rate": 40e6})
         assert np.std(result) < np.std(noisy_signal)
 
 

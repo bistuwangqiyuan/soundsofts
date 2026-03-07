@@ -36,7 +36,7 @@ class WaveletDenoising(PipelineStep):
             return sigma * 0.3936
         return sigma * (0.3936 + 0.1829 * np.log2(n))
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
         coeffs = pywt.wavedec(signal, self.wavelet, level=self.level)
 
         # Estimate noise σ from finest detail coefficients (MAD estimator)

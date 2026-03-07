@@ -16,12 +16,12 @@ class PipelineStep(ABC):
         self.enabled = enabled
 
     @abstractmethod
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
         """Transform *signal* in-place or return a new array.
 
         Args:
             signal: 1-D float array representing one A-scan waveform.
-            **ctx: Arbitrary context (sampling_rate, metadata, etc.).
+            ctx: Mutable context dict (sampling_rate, features, metadata, etc.).
 
         Returns:
             Processed signal array.

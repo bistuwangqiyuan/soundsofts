@@ -15,5 +15,5 @@ class DCRemoval(PipelineStep):
     def __init__(self) -> None:
         super().__init__(name="DCRemoval")
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
         return signal - np.mean(signal)

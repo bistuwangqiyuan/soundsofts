@@ -17,5 +17,5 @@ class MedianFilter(PipelineStep):
         super().__init__(name="MedianFilter")
         self.kernel_size = kernel_size
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
         return _medfilt(signal, size=self.kernel_size).astype(signal.dtype)

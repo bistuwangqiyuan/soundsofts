@@ -21,7 +21,8 @@ class EnvelopeExtractor(PipelineStep):
         super().__init__(name="EnvelopeExtractor")
         self.smooth_window = smooth_window
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
+        ctx = ctx if ctx is not None else {}
         analytic = hilbert(signal)
         envelope = np.abs(analytic).astype(signal.dtype)
 

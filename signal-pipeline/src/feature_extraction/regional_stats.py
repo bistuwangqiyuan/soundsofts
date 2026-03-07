@@ -20,7 +20,8 @@ class RegionalStats(PipelineStep):
     def __init__(self) -> None:
         super().__init__(name="RegionalStats")
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
+        ctx = ctx if ctx is not None else {}
         region_signals: dict[str, list[np.ndarray]] | None = ctx.get("region_signals")
         if region_signals is None:
             return signal

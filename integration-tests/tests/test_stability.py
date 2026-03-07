@@ -12,6 +12,17 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "signal-pipeline"))
 
 
+def _switch_src(project: str):
+    """Clear cached ``src`` package and repoint sys.path to *project*."""
+    for key in list(sys.modules):
+        if key == "src" or key.startswith("src."):
+            del sys.modules[key]
+    proj = str(ROOT / project)
+    if proj in sys.path:
+        sys.path.remove(proj)
+    sys.path.insert(0, proj)
+
+
 class TestMemoryStability:
     """Detect memory leaks in signal processing pipeline."""
 
@@ -19,6 +30,7 @@ class TestMemoryStability:
         """Run preprocessing 1000 times and verify no significant memory growth."""
         import psutil
 
+        _switch_src("signal-pipeline")
         from src.pipeline import Pipeline
         from src.preprocessing import DCRemoval, BandpassFilter, Normalization
 
@@ -42,6 +54,7 @@ class TestDataConsistency:
 
     def test_deterministic_output(self):
         """Same input → same output across multiple runs."""
+        _switch_src("signal-pipeline")
         from src.pipeline import Pipeline
         from src.preprocessing import DCRemoval, BandpassFilter, Normalization
 

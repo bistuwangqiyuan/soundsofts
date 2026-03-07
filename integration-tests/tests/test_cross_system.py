@@ -14,9 +14,18 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "signal-pipeline"))
-sys.path.insert(0, str(ROOT / "ml-engine"))
-sys.path.insert(0, str(ROOT / "image-report-system"))
 sys.path.insert(0, str(ROOT / "pe-coupling-analyzer" / "src"))
+
+
+def _switch_src(project: str):
+    """Clear cached ``src`` package and repoint sys.path to *project*."""
+    for key in list(sys.modules):
+        if key == "src" or key.startswith("src."):
+            del sys.modules[key]
+    proj = str(ROOT / project)
+    if proj in sys.path:
+        sys.path.remove(proj)
+    sys.path.insert(0, proj)
 
 
 class TestS4ToS2:
@@ -24,6 +33,7 @@ class TestS4ToS2:
 
     def test_feature_matrix_compatible(self):
         """Features extracted by S4 are consumable by S2 models."""
+        _switch_src("signal-pipeline")
         from src.pipeline import Pipeline
         from src.preprocessing import DCRemoval, BandpassFilter, Normalization
         from src.feature_extraction import TimeDomainFeatures, FrequencyDomainFeatures
@@ -37,8 +47,8 @@ class TestS4ToS2:
         for sig in signals:
             processed = pipe.run(sig, sampling_rate=40e6)
             ctx: dict = {"sampling_rate": 40e6}
-            TimeDomainFeatures().process(processed, **ctx)
-            FrequencyDomainFeatures().process(processed, **ctx)
+            TimeDomainFeatures().process(processed, ctx)
+            FrequencyDomainFeatures().process(processed, ctx)
             all_features.append(list(ctx["features"].values()))
 
         feature_matrix = np.array(all_features, dtype=np.float32)
@@ -52,6 +62,7 @@ class TestS5ReportGeneration:
     """S5 image report system integration."""
 
     def test_rule_engine(self):
+        _switch_src("image-report-system")
         from src.multimodal_fusion.rule_engine import RuleEngine
 
         engine = RuleEngine()
@@ -62,6 +73,7 @@ class TestS5ReportGeneration:
         assert checks[1].passed  # 1% < 5%
 
     def test_fusion_result(self):
+        _switch_src("image-report-system")
         from src.multimodal_fusion.fusion import fuse_results
         from src.multimodal_fusion.rule_engine import RuleCheckResult
 

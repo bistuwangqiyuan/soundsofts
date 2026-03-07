@@ -13,7 +13,7 @@ async def test_health_endpoint() -> None:
         transport=ASGITransport(app=app),
         base_url="http://test",
     ) as client:
-        response = await client.get("/health")
+        response = await client.get("/api/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -28,7 +28,7 @@ async def test_login_invalid_credentials() -> None:
         base_url="http://test",
     ) as client:
         response = await client.post(
-            "/auth/login",
+            "/api/auth/login",
             json={"username": "nonexistent", "password": "wrong"},
         )
     assert response.status_code == 401
@@ -43,7 +43,7 @@ async def test_login_missing_fields() -> None:
         base_url="http://test",
     ) as client:
         response = await client.post(
-            "/auth/login",
+            "/api/auth/login",
             json={"username": "test"},
         )
     assert response.status_code == 422
@@ -56,7 +56,7 @@ async def test_me_unauthorized() -> None:
         transport=ASGITransport(app=app),
         base_url="http://test",
     ) as client:
-        response = await client.get("/auth/me")
+        response = await client.get("/api/auth/me")
     assert response.status_code == 401
 
 
@@ -68,7 +68,7 @@ async def test_register_validation() -> None:
         base_url="http://test",
     ) as client:
         response = await client.post(
-            "/auth/register",
+            "/api/auth/register",
             json={
                 "username": "ab",
                 "email": "invalid-email",

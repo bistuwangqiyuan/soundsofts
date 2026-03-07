@@ -34,7 +34,8 @@ class BandpassFilter(PipelineStep):
         self.order = order
         self._sos = butter(order, [low, high], btype="band", fs=fs, output="sos")
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
+        ctx = ctx or {}
         fs = ctx.get("sampling_rate", self.fs)
         if fs != self.fs:
             self._sos = butter(self.order, [self.low, self.high], btype="band", fs=fs, output="sos")

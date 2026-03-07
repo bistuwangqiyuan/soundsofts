@@ -1,5 +1,6 @@
 """Application configuration using pydantic-settings."""
 
+import os
 from functools import lru_cache
 from typing import List, Union
 
@@ -17,11 +18,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Application
     app_name: str = Field(default="腐蚀与应力在线监测平台 V2.0", alias="APP_NAME")
     debug: bool = Field(default=False, alias="DEBUG")
 
-    # Database
     database_url: str = Field(
         default="postgresql+asyncpg://postgres:postgres@localhost:5432/soundsofts",
         alias="DATABASE_URL",
@@ -31,13 +30,8 @@ class Settings(BaseSettings):
         alias="DATABASE_URL_SYNC",
     )
 
-    # Redis
-    redis_url: str = Field(
-        default="redis://localhost:6379/0",
-        alias="REDIS_URL",
-    )
+    redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
 
-    # JWT
     jwt_secret: str = Field(
         default="change-me-in-production-use-long-random-string",
         alias="JWT_SECRET",
@@ -45,7 +39,6 @@ class Settings(BaseSettings):
     jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
     jwt_expire_minutes: int = Field(default=120, alias="JWT_EXPIRE_MINUTES")
 
-    # CORS
     cors_origins: List[str] = Field(
         default=["http://localhost:3000", "http://127.0.0.1:3000"],
         alias="CORS_ORIGINS",
@@ -54,28 +47,16 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        """Parse CORS_ORIGINS from comma-separated string if needed."""
         if isinstance(v, str):
             return [x.strip() for x in v.split(",") if x.strip()]
         return v
 
-    # Model paths
-    onnx_model_path: str = Field(
-        default="./model-serving/onnx_models",
-        alias="ONNX_MODEL_PATH",
-    )
-    torchserve_url: str = Field(
-        default="http://localhost:8080",
-        alias="TORCHSERVE_URL",
-    )
-    mlflow_tracking_uri: str = Field(
-        default="http://localhost:5000",
-        alias="MLFLOW_TRACKING_URI",
-    )
+    onnx_model_path: str = Field(default="./model-serving/onnx_models", alias="ONNX_MODEL_PATH")
+    torchserve_url: str = Field(default="http://localhost:8080", alias="TORCHSERVE_URL")
+    mlflow_tracking_uri: str = Field(default="http://localhost:5000", alias="MLFLOW_TRACKING_URI")
 
-    # File storage
-    upload_dir: str = Field(default="./uploads", alias="UPLOAD_DIR")
-    report_output_dir: str = Field(default="./reports", alias="REPORT_OUTPUT_DIR")
+    upload_dir: str = Field(default="/tmp/uploads" if os.environ.get("VERCEL") else "./uploads", alias="UPLOAD_DIR")
+    report_output_dir: str = Field(default="/tmp/reports" if os.environ.get("VERCEL") else "./reports", alias="REPORT_OUTPUT_DIR")
 
 
 @lru_cache

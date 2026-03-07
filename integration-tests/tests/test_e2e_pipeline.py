@@ -13,11 +13,20 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-# Add system paths
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "signal-pipeline"))
-sys.path.insert(0, str(ROOT / "ml-engine"))
 sys.path.insert(0, str(ROOT / "pe-coupling-analyzer" / "src"))
+
+
+def _switch_src(project: str):
+    """Clear cached ``src`` package and repoint sys.path to *project*."""
+    for key in list(sys.modules):
+        if key == "src" or key.startswith("src."):
+            del sys.modules[key]
+    proj = str(ROOT / project)
+    if proj in sys.path:
+        sys.path.remove(proj)
+    sys.path.insert(0, proj)
 
 
 class TestFullPipeline:
@@ -25,6 +34,7 @@ class TestFullPipeline:
 
     def test_signal_preprocessing_chain(self):
         """S4 → Verify preprocessing pipeline produces valid output."""
+        _switch_src("signal-pipeline")
         from src.pipeline import Pipeline
         from src.preprocessing import DCRemoval, BandpassFilter, Normalization
 
@@ -40,13 +50,14 @@ class TestFullPipeline:
 
     def test_feature_extraction(self):
         """S4 → Verify feature extraction produces expected number of features."""
+        _switch_src("signal-pipeline")
         from src.feature_extraction import TimeDomainFeatures, FrequencyDomainFeatures
 
         signal = np.sin(2 * np.pi * 5e6 * np.linspace(0, 1e-6, 2000)).astype(np.float32)
         ctx: dict = {"sampling_rate": 40e6}
 
-        TimeDomainFeatures().process(signal, **ctx)
-        FrequencyDomainFeatures().process(signal, **ctx)
+        TimeDomainFeatures().process(signal, ctx)
+        FrequencyDomainFeatures().process(signal, ctx)
 
         features = ctx["features"]
         assert "vpp" in features
@@ -55,6 +66,7 @@ class TestFullPipeline:
 
     def test_model_training_and_prediction(self):
         """S2 → Verify model can train and predict."""
+        _switch_src("ml-engine")
         from src.models import RandomForestModel
         from src.utils.metrics import compute_metrics
 
@@ -86,6 +98,7 @@ class TestFullPipeline:
 
     def test_spatial_alignment(self):
         """S4 → Verify spatial alignment produces aligned data."""
+        _switch_src("signal-pipeline")
         from src.spatial import SpatialAlignment
 
         positions = np.arange(0, 50, 1.0)
@@ -100,6 +113,7 @@ class TestFullPipeline:
 
     def test_quality_assessment(self):
         """S4 → Verify quality report generation."""
+        _switch_src("signal-pipeline")
         from src.quality import QualityReportGenerator
 
         np.random.seed(42)
@@ -120,6 +134,8 @@ class TestContractVerification:
     def test_analysis_speed_target(self):
         """Contract: single C-scan analysis < 10s (target 0.65s)."""
         import time
+
+        _switch_src("signal-pipeline")
         from src.pipeline import Pipeline
         from src.preprocessing import DCRemoval, BandpassFilter, Normalization
 
@@ -138,6 +154,8 @@ class TestContractVerification:
     def test_data_integrity(self):
         """Verify data hash verification works correctly."""
         import tempfile
+
+        _switch_src("signal-pipeline")
         from src.quality import HashVerifier
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".dat") as f:

@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+
+# 训练产物
+data/raw/
+data/processed/
+data/splits/
+data/external/
+mlruns/
+*.onnx
+*.pt
+*.pkl
+*.joblib

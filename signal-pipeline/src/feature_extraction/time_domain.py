@@ -26,7 +26,8 @@ class TimeDomainFeatures(PipelineStep):
     def __init__(self) -> None:
         super().__init__(name="TimeDomainFeatures")
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
+        ctx = ctx if ctx is not None else {}
         features: dict[str, float] = {}
 
         features["vpp"] = float(np.ptp(signal))

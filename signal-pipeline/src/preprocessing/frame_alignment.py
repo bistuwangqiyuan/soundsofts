@@ -19,7 +19,8 @@ class FrameAlignment(PipelineStep):
     def __init__(self) -> None:
         super().__init__(name="FrameAlignment")
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
+        ctx = ctx or {}
         ref: np.ndarray | None = ctx.get("reference_waveform")
         if ref is None:
             return signal

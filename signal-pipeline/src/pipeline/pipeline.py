@@ -29,21 +29,25 @@ class Pipeline:
         self._steps.append(step)
         return self
 
-    def run(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def run(self, signal: np.ndarray, ctx: dict[str, Any] | None = None, **kwargs: Any) -> np.ndarray:
         """Execute every enabled step sequentially."""
+        if ctx is None:
+            ctx = dict(kwargs)
         result = signal.copy()
         for step in self._steps:
             if not step.enabled:
                 continue
             t0 = time.perf_counter()
-            result = step.process(result, **ctx)
+            result = step.process(result, ctx)
             elapsed = time.perf_counter() - t0
             logger.debug("%s finished in %.4f s", step.name, elapsed)
         return result
 
-    def run_batch(self, signals: np.ndarray, **ctx: Any) -> np.ndarray:
+    def run_batch(self, signals: np.ndarray, ctx: dict[str, Any] | None = None, **kwargs: Any) -> np.ndarray:
         """Process a 2-D array where each row is an independent A-scan."""
-        return np.array([self.run(s, **ctx) for s in signals])
+        if ctx is None:
+            ctx = dict(kwargs)
+        return np.array([self.run(s, ctx=ctx) for s in signals])
 
     def __len__(self) -> int:
         return len(self._steps)

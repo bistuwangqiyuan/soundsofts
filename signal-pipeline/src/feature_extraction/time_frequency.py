@@ -24,7 +24,8 @@ class TimeFrequencyFeatures(PipelineStep):
         super().__init__(name="TimeFrequencyFeatures")
         self.nperseg = nperseg
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
+        ctx = ctx if ctx is not None else {}
         fs: float = ctx.get("sampling_rate", 40e6)
         features: dict[str, float] = {}
 

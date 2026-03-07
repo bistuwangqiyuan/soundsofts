@@ -20,7 +20,7 @@ class Normalization(PipelineStep):
         super().__init__(name="Normalization")
         self.method = method
 
-    def process(self, signal: np.ndarray, **ctx: Any) -> np.ndarray:
+    def process(self, signal: np.ndarray, ctx: dict[str, Any] | None = None) -> np.ndarray:
         if self.method == "zscore":
             std = np.std(signal)
             if std < 1e-12:
