@@ -3,10 +3,6 @@
 import asyncio
 from typing import Any, List, Optional, Tuple
 
-import numpy as np
-
-from scipy import stats
-
 
 class CorrelationCalculatorService:
     """Compute Pearson, Spearman, and mutual information between ultrasonic features and peel force."""
@@ -44,6 +40,8 @@ class CorrelationCalculatorService:
         force_values: List[float],
         segment_size: Optional[int],
     ) -> dict[str, Any]:
+        import numpy as np
+        from scipy import stats
         x = np.asarray(ultrasonic_values, dtype=np.float64)
         y = np.asarray(force_values, dtype=np.float64)
         n = min(len(x), len(y))
@@ -76,8 +74,9 @@ class CorrelationCalculatorService:
 
         return result
 
-    def _mutual_info(self, x: np.ndarray, y: np.ndarray) -> float:
+    def _mutual_info(self, x: Any, y: Any) -> float:
         """Compute mutual information using scipy.stats."""
+        import numpy as np
         try:
             from sklearn.feature_selection import mutual_info_regression
 
@@ -98,11 +97,12 @@ class CorrelationCalculatorService:
 
     def _segment_correlations(
         self,
-        x: np.ndarray,
-        y: np.ndarray,
+        x: Any,
+        y: Any,
         segment_size: int,
     ) -> List[dict[str, Any]]:
         """Compute Pearson and Spearman for each segment."""
+        from scipy import stats
         segments: List[dict[str, Any]] = []
         n = len(x)
         for start in range(0, n, segment_size):

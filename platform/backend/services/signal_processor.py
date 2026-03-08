@@ -3,8 +3,6 @@
 import asyncio
 from typing import Any, Optional
 
-import numpy as np
-
 from core.config import get_settings
 
 settings = get_settings()
@@ -70,6 +68,7 @@ class SignalProcessorService:
         denoise: bool = False,
     ) -> dict[str, Any]:
         """Process signal and optionally extract features."""
+        import numpy as np
         arr = np.array(signal, dtype=np.float64)
         pipeline = self._get_pipeline(
             bandpass_low, bandpass_high, sampling_rate, dc_removal, denoise
@@ -90,17 +89,17 @@ class SignalProcessorService:
 
     def _fallback_process(
         self,
-        arr: np.ndarray,
+        arr: Any,
         fs: float,
         low: float,
         high: float,
         dc_removal: bool,
-    ) -> np.ndarray:
+    ) -> Any:
         """Fallback processing when signal-pipeline is not installed."""
+        import numpy as np
         out = arr.copy()
         if dc_removal:
             out = out - np.mean(out)
-        # Simple FFT-based bandpass
         n = len(out)
         fft = np.fft.rfft(out)
         freqs = np.fft.rfftfreq(n, 1 / fs)
@@ -109,8 +108,9 @@ class SignalProcessorService:
         out = np.fft.irfft(fft, n)
         return out.astype(np.float64)
 
-    def _extract_features(self, signal: np.ndarray, fs: float) -> dict[str, float]:
+    def _extract_features(self, signal: Any, fs: float) -> dict[str, float]:
         """Extract basic time/domain features."""
+        import numpy as np
         n = len(signal)
         return {
             "rms": float(np.sqrt(np.mean(signal**2))),

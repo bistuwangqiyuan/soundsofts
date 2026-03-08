@@ -20,6 +20,10 @@ docker compose up -d
 
 Access at http://localhost:8080
 
+## Vercel 部署
+
+在 `platform` 目录下执行 `vercel` 或将该目录设为 Vercel 项目根目录。构建会编译前端并部署 API（`api/index.py`）。若构建阶段 Python 依赖安装失败，请在 Vercel 项目 **Settings → General** 中尝试将 **Python 版本** 设为 **3.12**（若提供该选项）。详见仓库根目录 `DEPLOYMENT.md`。
+
 ## Performance Targets
 
 - Single C-scan analysis: <= 0.65s (contract < 10s)

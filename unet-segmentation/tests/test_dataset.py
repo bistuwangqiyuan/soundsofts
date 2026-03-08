@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("cv2")
 from src.data.dataset import CScanDataset
 from src.data.splitter import split_dataset
 
@@ -29,6 +30,7 @@ class TestCScanDataset:
         assert "filename" in item
 
     def test_dataset_with_transform(self, temp_data_dir):
+        pytest.importorskip("albumentations")
         from src.data.augmentation import get_train_transforms
         transform = get_train_transforms({})
         ds = CScanDataset(

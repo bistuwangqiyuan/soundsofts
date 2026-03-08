@@ -16,12 +16,20 @@ from core.config import get_settings
 settings = get_settings()
 
 database_url = settings.database_url
+is_serverless = os.environ.get("VERCEL") == "1"
+
+# On Vercel without asyncpg, use SQLite (set DATABASE_URL to Neon postgres if you need PostgreSQL)
+if is_serverless and "sqlite" not in database_url:
+    try:
+        import asyncpg  # noqa: F401
+    except ImportError:
+        database_url = "sqlite+aiosqlite:////tmp/soundsofts.sqlite"
+
 if database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
     database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
 
-is_serverless = os.environ.get("VERCEL") == "1"
 is_sqlite = "sqlite" in database_url
 
 engine_kwargs: dict = {

@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 from core.config import get_settings
-from docx import Document
-from docx.shared import Inches, Pt
 
 settings = get_settings()
 
@@ -66,6 +64,8 @@ class ReportGeneratorService:
         overall_quality: str,
         image_path: Optional[str] = None,
     ) -> Path:
+        from docx import Document
+        from docx.shared import Inches, Pt
         doc = Document()
         doc.add_heading("聚乙烯补口粘接质量超声检测报告", 0)
 

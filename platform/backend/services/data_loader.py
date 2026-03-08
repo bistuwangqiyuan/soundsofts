@@ -4,8 +4,6 @@ import asyncio
 from pathlib import Path
 from typing import Any, Optional
 
-import numpy as np
-
 from core.config import get_settings
 
 settings = get_settings()
@@ -100,6 +98,7 @@ class DataLoaderService:
         fs = 40e6  # default sampling rate
         if p.suffix.lower() in (".h5", ".hdf5"):
             try:
+                import numpy as np
                 import h5py
 
                 with h5py.File(path, "r") as f:
@@ -120,6 +119,7 @@ class DataLoaderService:
                 return None
         if p.suffix.lower() == ".csv":
             try:
+                import numpy as np
                 import pandas as pd
 
                 df = pd.read_csv(path)
@@ -152,6 +152,7 @@ class DataLoaderService:
         )
 
     def _compute_spectrum(self, y: list, fs: float) -> dict[str, Any]:
+        import numpy as np
         arr = np.array(y, dtype=np.float64)
         n = len(arr)
         fft_vals = np.fft.rfft(arr)
@@ -196,6 +197,7 @@ class DataLoaderService:
                 continue
             try:
                 if p.suffix.lower() in (".h5", ".hdf5"):
+                    import numpy as np
                     import h5py
 
                     with h5py.File(p, "r") as f:
@@ -257,6 +259,7 @@ class DataLoaderService:
         if not path or path.suffix.lower() not in (".h5", ".hdf5"):
             return None
         try:
+            import numpy as np
             import h5py
 
             with h5py.File(path, "r") as f:

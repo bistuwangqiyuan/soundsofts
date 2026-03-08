@@ -4,8 +4,6 @@ import asyncio
 from pathlib import Path
 from typing import Any, Optional
 
-import numpy as np
-
 from core.config import get_settings
 
 settings = get_settings()
@@ -35,6 +33,7 @@ class InferenceEngineService:
         model_name: str,
     ) -> dict[str, Any]:
         try:
+            import numpy as np
             import onnxruntime as ort
 
             model_file = self._model_path / f"{model_name}.onnx"
@@ -57,7 +56,8 @@ class InferenceEngineService:
                 "model_name": model_name,
                 "confidence": 0.95,
             }
-        except Exception as e:
+        except Exception:
+            import numpy as np
             arr = np.array(features, dtype=np.float32)
             pred = float(np.mean(arr) * 10 + 5) if len(arr) > 0 else 10.0
             return {
@@ -74,6 +74,7 @@ class InferenceEngineService:
 
     def _segment_image_sync(self, image_bytes: bytes) -> dict[str, Any]:
         try:
+            import numpy as np
             import cv2
             import httpx
 

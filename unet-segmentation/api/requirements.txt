@@ -1,0 +1,4 @@
+# Minimal deps for Vercel serverless (keep bundle small)
+fastapi>=0.109.0
+pydantic>=2.0.0
+numpy>=1.26.0,<2.0

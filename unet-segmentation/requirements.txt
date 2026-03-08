@@ -10,4 +10,7 @@ pillow>=10.2.0
 pyyaml>=6.0.1
 pytest>=8.0.0
 pytest-cov>=4.1.0
+requests>=2.31.0
 tensorboard>=2.16.0
+fastapi>=0.109.0
+uvicorn>=0.27.0

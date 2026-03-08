@@ -1,6 +1,6 @@
 {
   "buildCommand": "echo done",
   "outputDirectory": "public",
-  "installCommand": "echo skip",
+  "installCommand": "npm install",
   "framework": null
 }

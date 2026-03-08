@@ -1,8 +1,7 @@
-"""TCP client for real-time data streaming from pyhton 的b/s架构."""
+"""TCP client for real-time data streaming from LabVIEW B/S acquisition."""
 
 from __future__ import annotations
 
-import json
 import socket
 import struct
 from dataclasses import dataclass
@@ -12,7 +11,7 @@ import numpy as np
 
 @dataclass
 class StreamPacket:
-    """One packet from the pyhton 的b/s架构 TCP stream."""
+    """One packet from the LabVIEW TCP data stream."""
     timestamp: float
     position_mm: float
     force_n: float
@@ -20,8 +19,8 @@ class StreamPacket:
     waveform: np.ndarray
 
 
-class pyhton 的b/s架构StreamClient:
-    """Connect to pyhton 的b/s架构 real-time TCP data stream.
+class StreamClient:
+    """Connect to LabVIEW real-time TCP data stream.
 
     Protocol: Each packet consists of:
     - 4 bytes: packet length (uint32, big-endian)
@@ -53,7 +52,7 @@ class pyhton 的b/s架构StreamClient:
         assert self._socket is not None
 
         header = self._recv_exact(self.HEADER_SIZE)
-        pkt_len, timestamp, position, force, wf_len = struct.unpack(">IdfI", header)
+        pkt_len, timestamp, position, force, wf_len = struct.unpack(">IdffI", header)
 
         wf_bytes = self._recv_exact(wf_len * 4)
         waveform = np.frombuffer(wf_bytes, dtype=np.float32)
@@ -77,7 +76,7 @@ class pyhton 的b/s架构StreamClient:
             data += chunk
         return data
 
-    def __enter__(self) -> pyhton 的b/s架构StreamClient:
+    def __enter__(self) -> StreamClient:
         self.connect()
         return self
 

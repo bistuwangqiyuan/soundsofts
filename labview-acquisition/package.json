@@ -1,0 +1,22 @@
+{
+  "name": "labview-acquisition",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LabVIEW B/S 上位机采集 — Vercel 后端 API",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ini": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "@vercel/node": "^3.2.29",
+    "typescript": "^5.9.3",
+    "vitest": "^2.0.0"
+  },
+  "scripts": {
+    "test:api": "vitest run",
+    "test": "npm run test:api"
+  }
+}

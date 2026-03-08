@@ -5,34 +5,49 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="S4 数据预处理与信号处理流水线", version="1.0.0")
+app = FastAPI(
+    title="S4 数据预处理与信号处理流水线",
+    version="1.0.0",
+    description="超声信号预处理、特征提取与包络 API，供前端或其他服务调用。",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
+)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
 class PreprocessRequest(BaseModel):
-    signal: List[float]
-    sampling_rate: float = 40e6
-    steps: List[str] = Field(default=["dc_removal", "bandpass", "normalize"])
+    """预处理请求：一维波形 + 采样率 + 可选步骤列表."""
+
+    signal: List[float] = Field(..., min_length=1, description="一维超声波形采样点")
+    sampling_rate: float = Field(40e6, description="采样率 (Hz)")
+    steps: List[str] = Field(
+        default=["dc_removal", "bandpass", "normalize"],
+        description="步骤: dc_removal, bandpass, wavelet, median, baseline, normalize",
+    )
 
 
 class FeatureRequest(BaseModel):
-    signal: List[float]
-    sampling_rate: float = 40e6
+    """特征/包络请求：一维波形 + 采样率."""
+
+    signal: List[float] = Field(..., min_length=1, description="一维超声波形采样点")
+    sampling_rate: float = Field(40e6, description="采样率 (Hz)")
 
 
-@app.get("/api/health")
+@app.get("/api/health", tags=["系统"])
 def health():
+    """健康检查，用于部署与监控."""
     return {"status": "healthy", "service": "S4-signal-pipeline", "version": "1.0.0"}
 
 
-@app.post("/api/preprocess")
+@app.post("/api/preprocess", tags=["预处理"])
 def preprocess(req: PreprocessRequest):
     arr = np.array(req.signal, dtype=np.float64)
     try:
@@ -52,6 +67,8 @@ def preprocess(req: PreprocessRequest):
         result = pipe.run(arr, ctx={"sampling_rate": req.sampling_rate})
     except Exception:
         result = arr - np.mean(arr)
+        if len(result) == 0:
+            return {"processed": [], "length": 0}
         peak = np.max(np.abs(result))
         if peak > 1e-12:
             result = result / peak
@@ -59,7 +76,7 @@ def preprocess(req: PreprocessRequest):
     return {"processed": result.tolist(), "length": len(result)}
 
 
-@app.post("/api/features")
+@app.post("/api/features", tags=["特征"])
 def extract_features(req: FeatureRequest):
     arr = np.array(req.signal, dtype=np.float64)
     try:
@@ -73,7 +90,7 @@ def extract_features(req: FeatureRequest):
         return {"features": {"rms": rms, "peak_to_peak": float(np.ptp(arr)), "mean": float(np.mean(arr))}}
 
 
-@app.post("/api/envelope")
+@app.post("/api/envelope", tags=["特征"])
 def envelope(req: FeatureRequest):
     arr = np.array(req.signal, dtype=np.float64)
     try:

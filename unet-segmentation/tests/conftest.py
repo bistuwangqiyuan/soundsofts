@@ -19,10 +19,13 @@ def temp_data_dir():
         img_dir.mkdir()
         mask_dir.mkdir()
 
+        try:
+            from PIL import Image
+        except ImportError:
+            pytest.skip("PIL (pillow) required for dataset tests", allow_module_level=True)
         for i in range(5):
             img = np.random.randint(0, 255, (64, 128, 3), dtype=np.uint8)
             mask = np.random.randint(0, 2, (64, 128), dtype=np.uint8) * 255
-            from PIL import Image
             Image.fromarray(img).save(img_dir / f"sample_{i}.png")
             Image.fromarray(mask).save(mask_dir / f"sample_{i}.png")
 

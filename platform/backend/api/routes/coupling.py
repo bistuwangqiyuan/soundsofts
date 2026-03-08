@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 from api.schemas.common import APIResponse
 from middleware.auth import get_current_user_optional
 from models.user import User
-from services.correlation_calculator import CorrelationCalculatorService
 
 router = APIRouter()
 
@@ -61,6 +60,13 @@ async def correlation_analysis(
             detail="method must be pearson, spearman, mutual_info, or all",
         )
     # In production: load ultrasonic_values and force_values from data_loader
+    try:
+        from services.correlation_calculator import CorrelationCalculatorService
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="Correlation service unavailable (scipy not installed)",
+        )
     calc = CorrelationCalculatorService()
     result = await calc.compute_correlations(
         ultrasonic_values=[0.5, 0.6, 0.7, 0.8, 0.75, 0.82, 0.78, 0.85],

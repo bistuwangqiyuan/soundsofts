@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+pytest.importorskip("albumentations")
 from src.data.augmentation import get_train_transforms, get_val_transforms
 
 

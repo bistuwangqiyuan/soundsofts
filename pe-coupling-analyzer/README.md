@@ -38,6 +38,19 @@ pyinstaller --noconfirm --clean pe_analyzer.spec
 
 打包完成后，可执行文件位于 `dist/聚乙烯粘接声力耦合分析系统.exe`，双击即可启动。
 
+## Vercel 部署（后端 API）
+
+将本软件作为后端部署在 Vercel，为前端提供 REST API：
+
+```bash
+# 安装 Vercel CLI 后
+vercel
+```
+
+- **API 根路径**：`/api`（如 `GET /api/health`、`POST /api/analyze`）
+- **前端**：`public/` 下为静态资源，根路径即站点首页
+- 详细接口说明见 [api/README.md](api/README.md)
+
 ## Software Copyright
 
 - Registration Number: 2026SR0XXXXXX

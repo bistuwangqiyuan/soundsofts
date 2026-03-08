@@ -89,7 +89,8 @@ class UNetTrainer:
             self.scheduler.step()
 
             total_loss += loss.item()
-        return total_loss / len(self.train_loader)
+        n_batches = len(self.train_loader)
+        return total_loss / n_batches if n_batches else 0.0
 
     def _validate(self) -> dict[str, float]:
         self.model.eval()
@@ -101,4 +102,7 @@ class UNetTrainer:
                 logits = self.model(images)
                 ious.append(iou_score(logits, masks))
                 dices.append(dice_score(logits, masks))
-        return {"iou": sum(ious) / len(ious), "dice": sum(dices) / len(dices)}
+        n = len(ious)
+        if n == 0:
+            return {"iou": 0.0, "dice": 0.0}
+        return {"iou": sum(ious) / n, "dice": sum(dices) / n}
