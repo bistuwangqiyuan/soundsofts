@@ -8,8 +8,8 @@ dist/
 build/
 .mypy_cache/
 
-# 训练数据与产物
-data/
+# 训练数据与产物（仅忽略项目根目录 data/，不忽略 src/data/）
+/data/
 checkpoints/
 runs/
 *.onnx
