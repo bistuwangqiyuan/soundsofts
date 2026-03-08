@@ -25,6 +25,12 @@ class FuseRequest(BaseModel):
     defect_ratio: float = Field(default=0.01)
 
 
+@app.get("/")
+@app.get("/api")
+def root():
+    return {"service": "S5-image-report-system", "version": "1.0.0", "docs": "/api/docs"}
+
+
 @app.get("/api/health")
 def health():
     return {"status": "healthy", "service": "S5-image-report-system", "version": "1.0.0"}

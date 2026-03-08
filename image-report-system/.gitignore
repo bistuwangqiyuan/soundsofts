@@ -12,3 +12,4 @@ build/
 output/
 *.docx
 !templates/*.docx
+.vercel

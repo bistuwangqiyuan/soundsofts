@@ -15,6 +15,8 @@ UNIFIED_TERMS: dict[str, str] = {
     "Dice": "Dice系数",
 }
 
+TERMINOLOGY = UNIFIED_TERMS  # API compatibility
+
 METRIC_STANDARDS: dict[str, dict[str, float]] = {
     "peel_strength_min": {"value": 70.0, "unit_factor": 1.0},
     "mape_threshold": {"value": 10.0, "unit_factor": 1.0},
