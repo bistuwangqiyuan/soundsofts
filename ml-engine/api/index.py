@@ -36,6 +36,23 @@ class PredictRequest(BaseModel):
     features: List[List[float]]
 
 
+def _train_and_predict(model_type: str, X_train: np.ndarray, y_train: np.ndarray, X_pred: np.ndarray):
+    """训练模型并预测，失败时回退到 sklearn RandomForest。"""
+    try:
+        from models import ALL_MODELS
+        model_cls = ALL_MODELS.get(model_type)
+        if model_cls is None:
+            raise ValueError(f"Unknown model: {model_type}")
+        model = model_cls()
+        model.train(X_train, y_train)
+        return model.predict(X_pred)
+    except Exception:
+        from sklearn.ensemble import RandomForestRegressor
+        rf = RandomForestRegressor(n_estimators=50, random_state=42)
+        rf.fit(X_train, y_train)
+        return rf.predict(X_pred)
+
+
 @app.get("/api/health")
 def health():
     return {"status": "healthy", "service": "S2-ml-engine", "version": "1.0.0"}
@@ -56,19 +73,7 @@ def train(req: TrainRequest):
     X_train, X_test = X[:split], X[split:]
     y_train, y_test = y[:split], y[split:]
 
-    try:
-        from models import ALL_MODELS
-        model_cls = ALL_MODELS.get(req.model_type)
-        if model_cls is None:
-            raise ValueError(f"Unknown model: {req.model_type}")
-        model = model_cls()
-        model.train(X_train, y_train)
-        preds = model.predict(X_test)
-    except Exception:
-        from sklearn.ensemble import RandomForestRegressor
-        rf = RandomForestRegressor(n_estimators=50, random_state=42)
-        rf.fit(X_train, y_train)
-        preds = rf.predict(X_test)
+    preds = _train_and_predict(req.model_type, X_train, y_train, X_test)
 
     from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
     mae = float(mean_absolute_error(y_test, preds))
@@ -85,3 +90,26 @@ def train(req: TrainRequest):
         "sample_predictions": preds[:10].tolist(),
         "sample_actual": y_test[:10].tolist(),
     }
+
+
+@app.post("/api/predict")
+def predict(req: PredictRequest):
+    """用合成数据训练模型，再对给定特征做预测。"""
+    if not req.features:
+        return {"error": "features 不能为空", "predictions": []}
+    X_pred = np.array(req.features, dtype=np.float32)
+    np.random.seed(42)
+    n = max(200, X_pred.shape[0] * 2)
+    n_f = X_pred.shape[1]
+    X_train = np.random.randn(n, n_f).astype(np.float32)
+    y_train = (2.0 * X_train[:, 0] + 0.5 * X_train[:, 1] - X_train[:, 2] + 80 + np.random.randn(n) * 0.5).astype(np.float32)
+    preds = _train_and_predict("random_forest", X_train, y_train, X_pred)
+    return {"predictions": preds.tolist()}
+
+
+# Vercel serverless 需要 Mangum 包装
+try:
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
+except ImportError:
+    handler = app

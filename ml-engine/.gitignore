@@ -18,3 +18,4 @@ mlruns/
 *.pt
 *.pkl
 *.joblib
+.vercel
