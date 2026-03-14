@@ -22,3 +22,4 @@ Data/
 *.hdf5
 *.csv
 !Config/*.csv
+.vercel

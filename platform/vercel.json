@@ -4,8 +4,5 @@
   "framework": null,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" }
-  ],
-  "headers": [
-    { "source": "/api/(.*)", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] }
   ]
 }

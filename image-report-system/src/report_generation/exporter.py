@@ -6,10 +6,6 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
-import numpy as np
-
-from ..multimodal_fusion.fusion import FusionResult
-from ..multimodal_fusion.rule_engine import RuleCheckResult, RuleEngine
 from .template_engine import ReportTemplate
 from .data_binder import ReportData, bind_data_to_report
 from .validator import validate_report_data
@@ -36,56 +32,26 @@ def run_pipeline(
     operator: str = "系统",
     equipment: str = "PAUT",
 ) -> list[str]:
-    """Run full pipeline: read image -> analyze -> generate report. Returns validation warnings."""
-    from ..image_processing.preprocessor import preprocess_cscan
+    """Run full pipeline: image -> analysis -> report. Returns validation warnings."""
+    from ..pipeline import AnalysisPipeline
 
     input_path = Path(input_path)
     output_path = Path(output_path)
 
-    if not input_path.exists():
-        raise FileNotFoundError(f"Input image not found: {input_path}")
-
-    # Preprocess image
-    preprocessed = preprocess_cscan(input_path)
-    h, w = preprocessed.shape[:2]
-    total_pixels = h * w
-
-    # Rule engine (no ML models - use heuristics)
-    engine = RuleEngine()
-    defect_ratio = 0.02  # Placeholder when no segmentation model
-    defect_area = int(defect_ratio * total_pixels)
-    predicted_force = 85.0  # Placeholder when no RF model
-    checks = engine.run_all_checks(predicted_force, defect_area, total_pixels)
-
-    # Dummy defect mask (zeros for demo)
-    defect_mask = np.zeros((h, w), dtype=np.float32)
-
-    # Fusion result
-    all_passed = all(c.passed for c in checks)
-    if all_passed and defect_ratio < 0.03:
-        quality, conf = "合格", 0.92
-    elif not all_passed or defect_ratio > 0.15:
-        quality, conf = "不合格", 0.75
-    else:
-        quality, conf = "待复核", 0.82
-
-    fusion = FusionResult(
-        defect_mask=defect_mask,
-        predicted_force=predicted_force,
-        rule_checks=checks,
-        overall_quality=quality,
-        confidence=conf,
-    )
+    pipeline = AnalysisPipeline()
+    result = pipeline.run(input_path)
 
     data = ReportData(
         specimen_id=specimen_id,
         inspection_date=datetime.now().strftime("%Y-%m-%d"),
         operator=operator,
         equipment=equipment,
-        fusion_result=fusion,
-        defect_count=0,
-        defect_area_ratio=defect_ratio,
+        fusion_result=result.fusion_result,
+        defect_count=result.defect_count,
+        defect_area_ratio=result.defect_area_ratio,
         image_path=str(input_path),
+        defects=result.defects,
+        analysis_result=result,
     )
 
     return export_report(data, output_path)

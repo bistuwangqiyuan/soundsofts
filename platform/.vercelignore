@@ -1,0 +1,11 @@
+node_modules
+build
+dist
+__pycache__
+.pytest_cache
+*.pyc
+tests
+Tests
+.git
+backend/tests
+frontend/node_modules

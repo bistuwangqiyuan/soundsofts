@@ -1,8 +1,6 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "echo done",
   "outputDirectory": "public",
-  "installCommand": "pip install -r requirements-api.txt",
   "framework": null,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" }

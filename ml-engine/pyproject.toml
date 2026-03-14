@@ -7,6 +7,12 @@ name = "ml-engine"
 version = "1.0.0"
 description = "Acoustic-force coupling regression model training and inference engine"
 requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.109",
+  "pydantic>=2.6",
+  "numpy>=1.26",
+  "scikit-learn>=1.4",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
